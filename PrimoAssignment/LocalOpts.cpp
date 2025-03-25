@@ -147,7 +147,7 @@ llvm::PassPluginLibraryInfo getLocalOptsPluginInfo() {
                         FPM.addPass(StrengthReduction());
                         return true;
                     }
-                    
+                
                     return false;
                 });
             }};

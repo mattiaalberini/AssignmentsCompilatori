@@ -3,10 +3,12 @@
 #include "llvm/Passes/PassPlugin.h"
 #include "llvm/Support/raw_ostream.h"
 #include <cmath>
-//commento di prova
+
 using namespace llvm;
-//mattia
+
 namespace {
+
+    //opt -load-pass-plugin /home/mattia/workspace/Laboratori_Compilatori/AssignmentCompilatori/PrimoAssignment/build/libLocalOpts.so -p algebraic-identity TestAlgebraicIdentity.ll -o TestAlgebraicIdentity.optimized.bc
 
     struct AlgebraicIdentity: PassInfoMixin<AlgebraicIdentity> {
         

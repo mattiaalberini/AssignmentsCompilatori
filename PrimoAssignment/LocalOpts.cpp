@@ -79,12 +79,24 @@ namespace {
                 if(dyn_cast<BinaryOperator>(&I)) {
                     if(I.getOpcode() == Instruction::Mul) {
                         
-                        outs() << "MOLTIPLICAZIONE\n";
-                        
                         if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(0))) {
                             outs() << "PRIMO OPERANDO\n";
-                            
+                            outs() << C;
                             if(C->getValue().isPowerOf2()) {
+                                outs() << "MULTIPLO DI 2\n";
+                            
+                                Instruction *NewInst = BinaryOperator::Create(Instruction::Shl, I.getOperand(1), ConstantInt::get(C->getType(), C->getValue().exactLogBase2()));
+                                NewInst->insertAfter(&I);
+                                I.replaceAllUsesWith(NewInst);
+                            }
+                            if((C->getValue()+1).isPowerOf2()) {
+                                outs() << "vicino a 2\n";
+                            
+                                Instruction *NewInst = BinaryOperator::Create(Instruction::Shl, I.getOperand(1), ConstantInt::get(C->getType(), C->getValue().exactLogBase2()));
+                                NewInst->insertAfter(&I);
+                                I.replaceAllUsesWith(NewInst);
+                            }
+                            if((C->getValue()-1).isPowerOf2()) {
                                 outs() << "MULTIPLO DI 2\n";
                             
                                 Instruction *NewInst = BinaryOperator::Create(Instruction::Shl, I.getOperand(1), ConstantInt::get(C->getType(), C->getValue().exactLogBase2()));

@@ -146,6 +146,42 @@ namespace {
                         }
 
                     }
+                    if(I.getOpcode() == Instruction::SDiv) {
+                        if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(1))) {
+                            outs() << "SECONDO OPERANDO\n";
+                            
+                            if(C->getValue().isPowerOf2()) {
+                                outs() << "MULTIPLO DI 2\n";
+
+                                Instruction *NewInst = BinaryOperator::Create(Instruction::AShr, I.getOperand(0), ConstantInt::get(C->getType(), C->getValue().exactLogBase2()));
+                                NewInst->insertAfter(&I);
+                                I.replaceAllUsesWith(NewInst);
+                                continue;
+                            }
+                            /*if((C->getValue()+1).isPowerOf2()) {
+                                outs() << "sotto a 2\n";
+                            
+                                Instruction *NewInst = BinaryOperator::Create(Instruction::Shl, I.getOperand(0), ConstantInt::get(C->getType(), (C->getValue()+1).exactLogBase2()));
+                                NewInst->insertAfter(&I);
+                                //sottriamo x
+                                Instruction *NewInst1 = BinaryOperator::Create(Instruction::Sub, NewInst, I.getOperand(0));
+                                NewInst1->insertAfter(NewInst);
+                                I.replaceAllUsesWith(NewInst1);
+                                continue;
+                            }
+                            if((C->getValue()-1).isPowerOf2()) {
+                                outs() << "sopra a 2\n";
+                                Instruction *NewInst = BinaryOperator::Create(Instruction::Shl, I.getOperand(0), ConstantInt::get(C->getType(), (C->getValue()-1).exactLogBase2()));
+                                NewInst->insertAfter(&I);
+                                //sommiamo x
+                                Instruction *NewInst1 = BinaryOperator::Create(Instruction::Add, NewInst, I.getOperand(0));
+                                NewInst1->insertAfter(NewInst);
+                                I.replaceAllUsesWith(NewInst1);
+                                continue;
+                            }*/
+                        }
+
+                    }
                 }
             }
     

@@ -209,6 +209,39 @@ namespace {
     
         static bool isRequired() { return true; }
     };
+
+    struct MultiInstructionOptimization: PassInfoMixin<MultiInstructionOptimization> {
+        
+        bool runOnBasicBlock(BasicBlock &B) {
+            
+            for (auto &I : B) {
+                
+            }
+    
+            return true;
+        } 
+    
+        bool runOnFunction(Function &F) {
+            bool Transformed = false;
+    
+            for (auto Iter = F.begin(); Iter != F.end(); ++Iter) {
+                if(runOnBasicBlock(*Iter)) {
+                    Transformed = true;
+                }
+            }
+            
+            return Transformed;
+        }
+
+        PreservedAnalyses run(Function &F, FunctionAnalysisManager &) {
+            bool Transformed = runOnFunction(F);
+    
+            return PreservedAnalyses::all();
+        }
+    
+    
+        static bool isRequired() { return true; }
+    };
 } 
 
 llvm::PassPluginLibraryInfo getLocalOptsPluginInfo() {
@@ -223,6 +256,10 @@ llvm::PassPluginLibraryInfo getLocalOptsPluginInfo() {
                     }
                     if (Name == "strength-reduction") {
                         FPM.addPass(StrengthReduction());
+                        return true;
+                    }
+                    if (Name == "multi-instruction") {
+                        FPM.addPass(MultiInstructionOptimization());
                         return true;
                     }
                 

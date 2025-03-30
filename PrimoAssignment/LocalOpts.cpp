@@ -215,45 +215,93 @@ namespace {
         bool runOnBasicBlock(BasicBlock &B) {
             
             for (auto &I : B) {
-                //Addizione
-                if(I.getOpcode() == Instruction::Add) {
-                    for(auto Iter = I.user_begin(); Iter != I.user_end(); ++Iter) {
-                        Instruction *InstUser = dyn_cast<Instruction>(*Iter);
-                        if(InstUser->getOpcode() == Instruction::Sub) {
-                            if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(0))) {
-                                if(C->getValue() == dyn_cast<ConstantInt>(InstUser->getOperand(1))->getValue()){
-                                    InstUser->replaceAllUsesWith(I.getOperand(1));
+                if(dyn_cast<BinaryOperator>(&I)) {
+                    //Add
+                    if(I.getOpcode() == Instruction::Add) {
+                        for(auto Iter = I.user_begin(); Iter != I.user_end(); ++Iter) {
+                            Instruction *InstUser = dyn_cast<Instruction>(*Iter);
+                            if(InstUser->getOpcode() == Instruction::Sub) {
+                                if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(0))) {
+                                    if(C->getValue() == dyn_cast<ConstantInt>(InstUser->getOperand(1))->getValue()){
+                                        InstUser->replaceAllUsesWith(I.getOperand(1));
+                                    }
+                                    continue;
                                 }
-                            }
-                            if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(1))) {
-                                if(C->getValue() == dyn_cast<ConstantInt>(InstUser->getOperand(1))->getValue()){
-                                    InstUser->replaceAllUsesWith(I.getOperand(0));
-                                }
-                            }
-
-                        }
-                      
-                    }
-                }
-                
-                //Sottrazione
-                if(I.getOpcode() == Instruction::Sub) {
-                    for(auto Iter = I.user_begin(); Iter != I.user_end(); ++Iter) {
-                        Instruction *InstUser = dyn_cast<Instruction>(*Iter);
-                        if(InstUser->getOpcode() == Instruction::Add) {
-                            if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(1))) {
-
-                                if(C->getValue() == dyn_cast<ConstantInt>(InstUser->getOperand(0))->getValue()){
-                                    InstUser->replaceAllUsesWith(I.getOperand(0));
-                                } else {
+                                if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(1))) {
                                     if(C->getValue() == dyn_cast<ConstantInt>(InstUser->getOperand(1))->getValue()){
                                         InstUser->replaceAllUsesWith(I.getOperand(0));
                                     }
+                                    continue;
                                 }
-                                                               
+                            }                     
+                        }
+                    }
+                    
+                    //Sub
+                    if(I.getOpcode() == Instruction::Sub) {
+                        for(auto Iter = I.user_begin(); Iter != I.user_end(); ++Iter) {
+                            Instruction *InstUser = dyn_cast<Instruction>(*Iter);
+                            if(InstUser->getOpcode() == Instruction::Add) {
+                                if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(1))) {
+                                    if(ConstantInt *CU = dyn_cast<ConstantInt>(InstUser->getOperand(0))) {
+                                        if(C->getValue() == CU->getValue()){
+                                            InstUser->replaceAllUsesWith(I.getOperand(0));                                          
+                                        } 
+                                        continue;
+                                    }
+                                    if(ConstantInt *CU = dyn_cast<ConstantInt>(InstUser->getOperand(1))) {
+                                        if(C->getValue() == dyn_cast<ConstantInt>(InstUser->getOperand(1))->getValue()){
+                                            InstUser->replaceAllUsesWith(I.getOperand(0));
+                                        } 
+                                        continue;
+                                    }                                        
+                                }
                             }
                         }
-                      
+                    }
+
+                    //Mul
+                    if(I.getOpcode() == Instruction::Mul) {
+                        for(auto Iter = I.user_begin(); Iter != I.user_end(); ++Iter) {
+                            Instruction *InstUser = dyn_cast<Instruction>(*Iter);
+                            if(InstUser->getOpcode() == Instruction::SDiv) {
+                                if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(0))) {
+                                    if(C->getValue() == dyn_cast<ConstantInt>(InstUser->getOperand(1))->getValue()){
+                                        InstUser->replaceAllUsesWith(I.getOperand(1));
+                                    }
+                                    continue;
+                                }
+                                if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(1))) {
+                                    if(C->getValue() == dyn_cast<ConstantInt>(InstUser->getOperand(1))->getValue()){
+                                        InstUser->replaceAllUsesWith(I.getOperand(0));
+                                    }
+                                    continue;
+                                }
+                            }                      
+                        }
+                    }
+
+                    //Div
+                    if(I.getOpcode() == Instruction::SDiv) {
+                        for(auto Iter = I.user_begin(); Iter != I.user_end(); ++Iter) {
+                            Instruction *InstUser = dyn_cast<Instruction>(*Iter);
+                            if(InstUser->getOpcode() == Instruction::Mul) {
+                                if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(1))) {
+                                    if(ConstantInt *CU = dyn_cast<ConstantInt>(InstUser->getOperand(0))) {
+                                        if(C->getValue() == CU->getValue()){
+                                            InstUser->replaceAllUsesWith(I.getOperand(0));                                          
+                                        } 
+                                        continue;
+                                    }
+                                    if(ConstantInt *CU = dyn_cast<ConstantInt>(InstUser->getOperand(1))) {
+                                        if(C->getValue() == dyn_cast<ConstantInt>(InstUser->getOperand(1))->getValue()){
+                                            InstUser->replaceAllUsesWith(I.getOperand(0));
+                                        } 
+                                        continue;
+                                    }                                        
+                                }
+                            }
+                        }
                     }
                 }
             }

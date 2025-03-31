@@ -8,38 +8,39 @@ using namespace llvm;
 
 namespace {
 
-    //opt -load-pass-plugin /home/mattia/workspace/Laboratori_Compilatori/AssignmentCompilatori/PrimoAssignment/build/libLocalOpts.so -p algebraic-identity TestAlgebraicIdentity.ll -o TestAlgebraicIdentity.optimized.bc
-
     struct AlgebraicIdentity: PassInfoMixin<AlgebraicIdentity> {
         
         bool runOnBasicBlock(BasicBlock &B) {
             
             for (auto &I : B) {
                 if(dyn_cast<BinaryOperator>(&I)) {
-                    //Moltiplicazione
-                    if(I.getOpcode() == Instruction::Mul) {
-                        if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(0))) {
-                            if(C->getValue() == 1) {
-                                I.replaceAllUsesWith(I.getOperand(1));
-                            }
-                        }
-                        if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(1))) {
-                            if(C->getValue() == 1) {
-                                I.replaceAllUsesWith(I.getOperand(0));
-                            }
-                        }
-                    }
-
-                    //Addizione
+                    //Add
                     if(I.getOpcode() == Instruction::Add) {
                         if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(0))) {
                             if(C->getValue() == 0) {
                                 I.replaceAllUsesWith(I.getOperand(1));
+                                continue;
                             }
                         }
                         if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(1))) {
                             if(C->getValue() == 0) {
                                 I.replaceAllUsesWith(I.getOperand(0));
+                                continue;
+                            }
+                        }
+                    }
+                    //Mul
+                    if(I.getOpcode() == Instruction::Mul) {
+                        if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(0))) {
+                            if(C->getValue() == 1) {
+                                I.replaceAllUsesWith(I.getOperand(1));
+                                continue;
+                            }
+                        }
+                        if(ConstantInt *C = dyn_cast<ConstantInt>(I.getOperand(1))) {
+                            if(C->getValue() == 1) {
+                                I.replaceAllUsesWith(I.getOperand(0));
+                                continue;
                             }
                         }
                     }

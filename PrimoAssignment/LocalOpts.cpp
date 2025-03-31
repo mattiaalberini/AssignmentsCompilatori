@@ -68,7 +68,6 @@ namespace {
             return PreservedAnalyses::all();
         }
     
-    
         static bool isRequired() { return true; }
     };
 
@@ -177,7 +176,6 @@ namespace {
     
             return PreservedAnalyses::all();
         }
-    
     
         static bool isRequired() { return true; }
     };
@@ -297,8 +295,7 @@ namespace {
             bool Transformed = runOnFunction(F);
     
             return PreservedAnalyses::all();
-        }
-    
+        }   
     
         static bool isRequired() { return true; }
     };

@@ -1,4 +1,4 @@
-**PRIMO ASSIGNMENT**
+## PRIMO ASSIGNMENT
 
 **Algebraic Identity:** \
 opt -load-pass-plugin ../build/libLocalOpts.so -p algebraic-identity AlgebraicIdentity.ll -o AlgebraicIdentity.optimized.bc \

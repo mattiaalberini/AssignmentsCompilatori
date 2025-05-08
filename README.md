@@ -11,3 +11,9 @@ llvm-dis StrengthReduction.optimized.bc -o StrengthReduction.optimized.ll
 **Multi-Instruction Optimization:** \
 opt -load-pass-plugin ../build/libLocalOpts.so -p multi-instruction MultiInstructionOptimization.ll -o MultiInstructionOptimization.optimized.bc \
 llvm-dis MultiInstructionOptimization.optimized.bc -o MultiInstructionOptimization.optimized.ll
+
+## TERZO ASSIGNMENT
+
+opt -load-pass-plugin ../build/libLoopPass.dylib -p loop-pass LoopCodeM.m2r.ll -o LoopPass.optimized.bc
+llvm-dis LoopPass.optimized.bc -o LoopPass.optimized.ll
+

@@ -35,7 +35,14 @@ endif()
 #===============================================================================
 add_library(LoopPass SHARED LoopPass.cpp)
 
+
 # Allow undefined symbols in shared objects on Darwin (this is the default
 # behaviour on Linux)
+# Link with the required LLVM libraries
 target_link_libraries(LoopPass
   "$<$<PLATFORM_ID:Darwin>:-undefined dynamic_lookup>")
+  # Ensure the necessary header files are included in the search path
+target_include_directories(LoopPass
+PRIVATE
+${LLVM_INCLUDE_DIRS}
+)

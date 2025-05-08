@@ -3,16 +3,11 @@ source_filename = "LoopCodeM.c"
 target datalayout = "e-m:o-i64:64-i128:128-n32:64-S128-Fn32"
 target triple = "arm64-apple-macosx15.0.0"
 
-@.str = private unnamed_addr constant [25 x i8] c"%d,%d,%d,%d,%d,%d,%d,%d\0A\00", align 1
-
 ; Function Attrs: noinline nounwind ssp uwtable(sync)
 define void @foo(i32 noundef %0, i32 noundef %1) #0 {
   br label %3
 
 3:                                                ; preds = %17, %2
-  %.05 = phi i32 [ 0, %2 ], [ %21, %17 ]
-  %.04 = phi i32 [ 3, %2 ], [ %19, %17 ]
-  %.03 = phi i32 [ 0, %2 ], [ %18, %17 ]
   %.01 = phi i32 [ 3, %2 ], [ %.1, %17 ]
   %.0 = phi i32 [ %1, %2 ], [ %4, %17 ]
   %4 = add nsw i32 %.0, 1
@@ -44,15 +39,12 @@ define void @foo(i32 noundef %0, i32 noundef %1) #0 {
   %18 = add nsw i32 %5, 7
   %19 = add nsw i32 %.02, 2
   %20 = add nsw i32 %0, 7
-  %21 = add nsw i32 %6, 2
+  %21 = add nsw i32 %6, 5
   br label %3
 
 22:                                               ; preds = %15
-  %23 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %12, i32 noundef %13, i32 noundef %.03, i32 noundef %.04, i32 noundef %6, i32 noundef %.05, i32 noundef %5, i32 noundef %4)
   ret void
 }
-
-declare i32 @printf(ptr noundef, ...) #1
 
 ; Function Attrs: noinline nounwind ssp uwtable(sync)
 define i32 @main() #0 {
@@ -62,7 +54,6 @@ define i32 @main() #0 {
 }
 
 attributes #0 = { noinline nounwind ssp uwtable(sync) "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+altnzcv,+ccdp,+ccidx,+complxnum,+crc,+dit,+dotprod,+flagm,+fp-armv8,+fp16fml,+fptoint,+fullfp16,+jsconv,+lse,+neon,+pauth,+perfmon,+predres,+ras,+rcpc,+rdm,+sb,+sha2,+sha3,+specrestrict,+ssbs,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8a,+zcm,+zcz" }
-attributes #1 = { "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+altnzcv,+ccdp,+ccidx,+complxnum,+crc,+dit,+dotprod,+flagm,+fp-armv8,+fp16fml,+fptoint,+fullfp16,+jsconv,+lse,+neon,+pauth,+perfmon,+predres,+ras,+rcpc,+rdm,+sb,+sha2,+sha3,+specrestrict,+ssbs,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8a,+zcm,+zcz" }
 
 !llvm.module.flags = !{!0, !1, !2, !3, !4}
 !llvm.ident = !{!5}

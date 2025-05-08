@@ -3,8 +3,6 @@ source_filename = "LoopCodeM.c"
 target datalayout = "e-m:o-i64:64-i128:128-n32:64-S128-Fn32"
 target triple = "arm64-apple-macosx15.0.0"
 
-@.str = private unnamed_addr constant [25 x i8] c"%d,%d,%d,%d,%d,%d,%d,%d\0A\00", align 1
-
 ; Function Attrs: noinline nounwind ssp uwtable(sync)
 define void @foo(i32 noundef %0, i32 noundef %1) #0 {
   %3 = alloca i32, align 4
@@ -76,24 +74,13 @@ define void @foo(i32 noundef %0, i32 noundef %1) #0 {
   %41 = add nsw i32 %40, 7
   store i32 %41, ptr %11, align 4
   %42 = load i32, ptr %9, align 4
-  %43 = add nsw i32 %42, 2
+  %43 = add nsw i32 %42, 5
   store i32 %43, ptr %10, align 4
   br label %12
 
 44:                                               ; preds = %33
-  %45 = load i32, ptr %5, align 4
-  %46 = load i32, ptr %6, align 4
-  %47 = load i32, ptr %7, align 4
-  %48 = load i32, ptr %8, align 4
-  %49 = load i32, ptr %9, align 4
-  %50 = load i32, ptr %10, align 4
-  %51 = load i32, ptr %11, align 4
-  %52 = load i32, ptr %4, align 4
-  %53 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %45, i32 noundef %46, i32 noundef %47, i32 noundef %48, i32 noundef %49, i32 noundef %50, i32 noundef %51, i32 noundef %52)
   ret void
 }
-
-declare i32 @printf(ptr noundef, ...) #1
 
 ; Function Attrs: noinline nounwind ssp uwtable(sync)
 define i32 @main() #0 {
@@ -105,7 +92,6 @@ define i32 @main() #0 {
 }
 
 attributes #0 = { noinline nounwind ssp uwtable(sync) "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+altnzcv,+ccdp,+ccidx,+complxnum,+crc,+dit,+dotprod,+flagm,+fp-armv8,+fp16fml,+fptoint,+fullfp16,+jsconv,+lse,+neon,+pauth,+perfmon,+predres,+ras,+rcpc,+rdm,+sb,+sha2,+sha3,+specrestrict,+ssbs,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8a,+zcm,+zcz" }
-attributes #1 = { "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+altnzcv,+ccdp,+ccidx,+complxnum,+crc,+dit,+dotprod,+flagm,+fp-armv8,+fp16fml,+fptoint,+fullfp16,+jsconv,+lse,+neon,+pauth,+perfmon,+predres,+ras,+rcpc,+rdm,+sb,+sha2,+sha3,+specrestrict,+ssbs,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8a,+zcm,+zcz" }
 
 !llvm.module.flags = !{!0, !1, !2, !3, !4}
 !llvm.ident = !{!5}

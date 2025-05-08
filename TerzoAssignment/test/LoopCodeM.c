@@ -20,10 +20,9 @@ LOOP:
   m = y + 7;
   n = h + 2;
   y = c + 7;
-  r = q + 2;
+  r = q + 5;
   goto LOOP;
 EXIT:
-  printf("%d,%d,%d,%d,%d,%d,%d,%d\n", a, h, m, n, q, r, y, z);
 }
 
 int main() {

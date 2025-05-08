@@ -44,7 +44,7 @@ namespace {
             }
             return true;
         }
-
+        //Controlliamo che non ci sia un uso fuori dal loop
         bool isDead(Instruction *I, Loop &loop) {
             bool isDead = true;
             for (auto u = I->use_begin(); u != I->use_end() && isDead; ++u) {

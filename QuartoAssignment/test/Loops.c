@@ -1,12 +1,21 @@
-int loops(int *a, int *b, int *c, int *d, int N) {
-    int i;
+#include <stdio.h>
 
-    for(i = 0; i < N; i++) {
-        a[i] = 1 / b[i] * c[i];
+int loops(int *a, int *b, int *c, int *d, int N) {
+    int i=0;
+
+    if(N > 0) {
+        do {
+            a[i] = 1 / b[i] * c[i];
+            i+=1;
+        } while(i < N);
     }
 
-    for(i = 0; i < N; i++) {
-        d[i] = a[i + 2] + c[i];
+    i=0;
+    if(N > 0) {
+        do{
+            d[i] = a[i] + c[i];
+            i+=1;
+        } while(i < N);
     }
     
     return N;

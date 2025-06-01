@@ -43,6 +43,10 @@ namespace {
         }
 
         bool sameTripCount(Loop *L0, Loop *L1, ScalarEvolution &SE) {
+            auto tripCountL0 = SE.getBackedgeTakenCount(L0);
+            auto tripCountL1 = SE.getBackedgeTakenCount(L1);
+
+            if(tripCountL0 == tripCountL1) return true;
 
             return false;
         }

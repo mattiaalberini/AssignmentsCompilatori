@@ -93,23 +93,56 @@ namespace {
                 for(Instruction &IL0 : *BBL0) {
                     if(auto *storeInstL0 = dyn_cast<StoreInst>(&IL0)) {
                         //Nel primo loop c'è una store
-                        outs() << "Store inst L0\n";
-                        outs() << IL0 << "\n";
+                        auto *StorePtr = storeInstL0->getPointerOperand();
 
                         for(auto &BBL1 : L1->getBlocks()){
                             for(Instruction &IL1 : *BBL1) {
                                 if(auto *loadInstL1 = dyn_cast<LoadInst>(&IL1)) {
                                     //Nel secondo loop c'è una load
-                                    outs() << "Load inst L1\n";
-                                    outs() << IL1 << "\n";
+                                    auto *LoadPtr = loadInstL1->getPointerOperand();
                                     
                                     if(auto Dep = DI.depends(&IL0, &IL1, true)) {
+
                                         //Istruzioni con potenziale dipendenza
                                         if(Dep) {
-                                            outs() << Dep->getLevels() <<"\n";
-                                            Dep->dump(outs());
+                                            auto *GEPStore = dyn_cast<GetElementPtrInst>(StorePtr);
+                                            auto *GEPLoad = dyn_cast<GetElementPtrInst>(LoadPtr);
+
+                                            //Controllo se è lo stesso array
+                                            if(GEPStore->getPointerOperand() == GEPLoad->getPointerOperand()) {
+                                                auto *IndexStore = GEPStore->getOperand(1);
+                                                auto *IndexLoad = GEPLoad->getOperand(1);
+                                                
+                                                //Controllo l'offset
+                                                if(auto *IndexStoreInst = dyn_cast<Instruction>(IndexStore)) {
+                                                    if(auto *IndexLoadInst = dyn_cast<Instruction>(IndexLoad)) {
+
+                                                        outs() << IL0 << "\n";
+                                                        outs() << IL1 << "\n";
+
+                                                        outs() << *IndexStoreInst->getOperand(0) << "\n";
+                                                        outs() << *IndexLoadInst->getOperand(0) << "\n";
+
+                                                        //Se sono tutte due PHI Instruction l'accesso all'array avviene tramite induction variable
+                                                        if(PHINode *PHIStore = dyn_cast<PHINode>(IndexStoreInst->getOperand(0))) {
+                                                            if(PHINode *PHIStore = dyn_cast<PHINode>(IndexLoadInst->getOperand(0))) {
+                                                                outs() << "Nessuna dipendenze negativa\n";
+                                                            } else {
+                                                                outs() << "Dipendenze negativa\n";
+                                                                return false;
+                                                            }
+                                                        } else {
+                                                            outs() << "Dipendenze negativa\n";
+                                                            return false;
+                                                        }
+                                                    }
+                                                }
+                                                
+                                            }
+
                                         } else {
-                                            outs() << "Nessuna dipendenza!.\n";
+                                            //Non hanno dipendenza
+                                            return true;
                                         }                                                                     
                                     }
                                 }
@@ -194,42 +227,49 @@ namespace {
             PostDominatorTree &PDT = AM.getResult<PostDominatorTreeAnalysis>(F);
             DependenceInfo &DI = AM.getResult<DependenceAnalysis>(F);
 
-            int i = 0;
+            
+            SmallVector<Loop *, 8> Worklist;
+            
             Loop *L0, *L1;
             
-            for(auto *L : LI) {
-                if(i == 0) L0 = L;
-                else L1 = L;
+            for(Loop *TopLevelLoop : LI) {
+                for(Loop *L : depth_first(TopLevelLoop)) {
+                    if(L->isInnermost()) {
+                        Worklist.push_back(L);
+                    }
+                }
+            }         
 
-                i++;
+            if(Worklist.size() < 2) {
+                outs() << "Non ci sono abbastanza loop\n";
+                return PreservedAnalyses::all();
             }
 
-            if(isAdjacent(L1, L0)) {
-                outs() << "Adiacenti\n";
+            for(int i = 0; i < Worklist.size(); ++i) {
+                for(int j = i + 1; j < Worklist.size(); ++j) {
+                    L0 = Worklist[i];
+                    L1 = Worklist[j];
 
-                if(sameTripCount(L1, L0, SE)) {
-                    outs() << "Stesso trip count\n";
+                    if(isAdjacent(L1, L0)) {
+                        outs() << "Adiacenti\n";
 
-                    if(isControlFlowEquivalence(L1, L0, DT, PDT)) {
-                        outs() << "Control flow equivalent\n";
-                        
-                        if(hasNotNegativeDependence(L1, L0, DI)) {
-                            outs() << "Nessuna dipendenza a distanza negativa\n";
+                        if(sameTripCount(L1, L0, SE)) {
+                            outs() << "Stesso trip count\n";
 
-                            if(loopFus(L1, L0)) outs() << "Loop fusion avvenuta correttamente\n";
-                            else outs() << "Errore durante loop fusion\n";
+                            if(isControlFlowEquivalence(L1, L0, DT, PDT)) {
+                                outs() << "Control flow equivalent\n";
+                                
+                                if(hasNotNegativeDependence(L1, L0, DI)) {
+                                    outs() << "Nessuna dipendenza a distanza negativa\n";
+
+                                    if(loopFus(L1, L0)) outs() << "Loop fusion avvenuta correttamente\n";
+                                    else outs() << "Errore durante loop fusion\n";
+                                }
+                            }
                         }
                     }
                 }
             }
-        
-            /*
-            SmallVector<Loop *, 8> Worklist = LI.getLoopsInPreorder();
-
-            for(auto L0 = Worklist.begin(); L0 != Worklist.end(); ++L0) {
-
-            }
-            */
 
             return PreservedAnalyses::all();
         }

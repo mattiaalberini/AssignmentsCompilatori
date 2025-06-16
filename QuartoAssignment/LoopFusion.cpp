@@ -121,14 +121,14 @@ namespace {
 
             return true;
         }
-
+        
+        //Unisco i loop
         bool loopFus(Loop *L0, Loop *L1) {
             auto *IVL0 = L0->getCanonicalInductionVariable();
             auto *IVL1 = L1->getCanonicalInductionVariable();
 
             //Modifico gli usi della induction variable
             IVL1->replaceAllUsesWith(IVL0);
-
 
             //Modifiche CFG
 
@@ -137,26 +137,51 @@ namespace {
 
             auto ExitL1 = L1->getUniqueExitBlock();
 
-            //Non considero nel body l'header e il latch
-            auto BodyL0 = L0->getBlocks().drop_front(1).drop_back(1);
-            auto BodyL1 = L1->getBlocks().drop_front(1).drop_back(1);
-
             auto LatchL0 = L0->getLoopLatch();
             auto LatchL1 = L1->getLoopLatch();
-            
-            //Body L0 -> Body L1
-            BodyL0.back()->getTerminator()->setSuccessor(0, BodyL1.front());
 
-            //Body L1 -> Latch L0
-            BodyL1.back()->getTerminator()->setSuccessor(0, LatchL0);
 
-            //Header L1 -> Latch L1
-            BranchInst::Create(LatchL1, HeaderL1->getTerminator());
-            HeaderL1->getTerminator()->eraseFromParent();
-            
-            //Header L0 -> Exit L1
-            BranchInst::Create(BodyL0.front(), ExitL1, HeaderL0->back().getOperand(0), HeaderL0->getTerminator());
-            HeaderL0->getTerminator()->eraseFromParent();
+            if(L0->isGuarded() && L1->isGuarded()) {
+                //Guarded
+                
+                auto GuardL0 = L0->getLoopGuardBranch()->getParent();
+                auto GuardL1 = L1->getLoopGuardBranch()->getParent();
+
+                BranchInst::Create(L0->getLoopPreheader(), ExitL1, GuardL0->back().getOperand(0), GuardL0->getTerminator());
+                GuardL0->getTerminator()->eraseFromParent();
+
+                BranchInst::Create(L0->getBlocks().front(), ExitL1, LatchL0->back().getOperand(0), LatchL0->getTerminator());
+                LatchL0->getTerminator()->eraseFromParent();
+
+                //Body L0 -> Body L1
+                L0->getBlocks().drop_back(1).back()->getTerminator()->setSuccessor(0, L1->getBlocks().front());
+
+                //Body L1 -> Latch L0
+                L1->getBlocks().drop_back(1).back()->getTerminator()->setSuccessor(0, LatchL0);
+
+                HeaderL1->front().eraseFromParent();
+
+            } else {
+                //Non guarded
+
+                //Non considero nel body l'header e il latch
+                auto BodyL0 = L0->getBlocks().drop_front(1).drop_back(1);
+                auto BodyL1 = L1->getBlocks().drop_front(1).drop_back(1);
+
+                //Body L0 -> Body L1
+                BodyL0.back()->getTerminator()->setSuccessor(0, BodyL1.front());
+
+                //Body L1 -> Latch L0
+                BodyL1.back()->getTerminator()->setSuccessor(0, LatchL0);
+
+                //Header L1 -> Latch L1
+                BranchInst::Create(LatchL1, HeaderL1->getTerminator());
+                HeaderL1->getTerminator()->eraseFromParent();
+                
+                //Header L0 -> Exit L1
+                BranchInst::Create(BodyL0.front(), ExitL1, HeaderL0->back().getOperand(0), HeaderL0->getTerminator());
+                HeaderL0->getTerminator()->eraseFromParent();
+            }
 
             return true;
         }
@@ -179,15 +204,24 @@ namespace {
                 i++;
             }
 
-            if(isAdjacent(L1, L0)) outs() << "Adiacenti\n";
+            if(isAdjacent(L1, L0)) {
+                outs() << "Adiacenti\n";
 
-            if(sameTripCount(L1, L0, SE)) outs() << "Stesso trip count\n";
+                if(sameTripCount(L1, L0, SE)) {
+                    outs() << "Stesso trip count\n";
 
-            if(isControlFlowEquivalence(L1, L0, DT, PDT)) outs() << "Control flow equivalent\n";
+                    if(isControlFlowEquivalence(L1, L0, DT, PDT)) {
+                        outs() << "Control flow equivalent\n";
+                        
+                        if(hasNotNegativeDependence(L1, L0, DI)) {
+                            outs() << "Nessuna dipendenza a distanza negativa\n";
 
-            if(hasNotNegativeDependence(L1, L0, DI)) outs() << "Nessuna dipendenza a distanza negativa\n";
-
-            if(loopFus(L1, L0)) outs() << "Loop fusion avvenuta correttamente\n";
+                            if(loopFus(L1, L0)) outs() << "Loop fusion avvenuta correttamente\n";
+                            else outs() << "Errore durante loop fusion\n";
+                        }
+                    }
+                }
+            }
         
             /*
             SmallVector<Loop *, 8> Worklist = LI.getLoopsInPreorder();

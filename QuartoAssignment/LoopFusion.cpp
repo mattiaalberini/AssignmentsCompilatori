@@ -140,10 +140,7 @@ namespace {
                                                 
                                             }
 
-                                        } else {
-                                            //Non hanno dipendenza
-                                            return true;
-                                        }                                                                     
+                                        }                                                                   
                                     }
                                 }
                             }

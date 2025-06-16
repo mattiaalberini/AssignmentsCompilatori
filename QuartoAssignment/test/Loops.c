@@ -1,22 +1,18 @@
 #include <stdio.h>
 
-int loops(int *a, int *b, int *c, int *d, int N) {
-    int i=0;
+int z =9;
 
-    if(N > 0) {
-        do {
-            a[i] = 1 / b[i] * c[i];
-            i+=1;
-        } while(i < N);
+void loops(int *a, int *b, int *c, int *d, int N, int M) {
+    N=4;
+    M=2;
+    int i, h;
+    
+    for (i = 0; i < N; i++) {
+        a[i] = 3;
     }
 
-    i=0;
-    if(N > 0) {
-        do{
-            d[i] = a[i] + c[i];
-            i+=1;
-        } while(i < N);
+    for (i = 0; i < N; i++) {
+        h = a[i] + 2;
     }
     
-    return N;
 }

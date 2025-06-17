@@ -4,7 +4,7 @@ void loops(int *a, int *b, int N) {
     
     if(N > 2) {
         do {
-            a[i] = 3;
+            a[i] = i + 3;
             i += 1;
         } while (i < N);
     }
@@ -13,7 +13,7 @@ void loops(int *a, int *b, int N) {
     i=0;
     if(N > 2) {
         do {
-            b[i] = 2;
+            b[i] = a[i] - 1;
             i += 1;
         } while (i < N);
     }

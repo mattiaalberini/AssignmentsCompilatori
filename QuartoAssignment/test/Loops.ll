@@ -3,8 +3,6 @@ source_filename = "Loops.c"
 target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-unknown-linux-gnu"
 
-@z = dso_local global i32 9, align 4
-
 ; Function Attrs: noinline nounwind uwtable
 define dso_local void @loops(ptr noundef %0, ptr noundef %1, ptr noundef %2, ptr noundef %3, i32 noundef %4, i32 noundef %5) #0 {
   br label %7
@@ -27,23 +25,26 @@ define dso_local void @loops(ptr noundef %0, ptr noundef %1, ptr noundef %2, ptr
 14:                                               ; preds = %7
   br label %15
 
-15:                                               ; preds = %22, %14
-  %.1 = phi i32 [ 0, %14 ], [ %23, %22 ]
+15:                                               ; preds = %24, %14
+  %.1 = phi i32 [ 0, %14 ], [ %25, %24 ]
   %16 = icmp slt i32 %.1, 4
-  br i1 %16, label %17, label %24
+  br i1 %16, label %17, label %26
 
 17:                                               ; preds = %15
   %18 = sext i32 %.1 to i64
   %19 = getelementptr inbounds i32, ptr %0, i64 %18
   %20 = load i32, ptr %19, align 4
   %21 = add nsw i32 %20, 2
-  br label %22
+  %22 = sext i32 %.1 to i64
+  %23 = getelementptr inbounds i32, ptr %1, i64 %22
+  store i32 %21, ptr %23, align 4
+  br label %24
 
-22:                                               ; preds = %17
-  %23 = add nsw i32 %.1, 1
+24:                                               ; preds = %17
+  %25 = add nsw i32 %.1, 1
   br label %15, !llvm.loop !8
 
-24:                                               ; preds = %15
+26:                                               ; preds = %15
   ret void
 }
 

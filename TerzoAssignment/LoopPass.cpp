@@ -15,98 +15,141 @@ std::set<Instruction*> Invariants;
 std::vector<Instruction*> InstToMove;
 
 namespace {
-    struct LoopPass: PassInfoMixin<LoopPass> {
-        
-        bool runOnBasicBlock(BasicBlock &B) {
-            return true;
-        }
+    struct LoopPass: PassInfoMixin<LoopPass> { 
 
-        bool isOperandInvariant(Value *operand, Loop &loop) {
+        //Controllo sull'operando
+        bool isOperandInvariant(Value *operand, Loop *loop) {
+            //Se è costante --> Accettato
+            //Se viene da fuori --> Accettato
             if (isa<llvm::Constant>(operand) || isa<llvm::Argument>(operand)) {
                 return true;
             }
 
             if (llvm::Instruction *inst = dyn_cast<llvm::Instruction>(operand)) {
-                if (!loop.contains(inst->getParent()) || Invariants.count(inst)) {
+                //Se l'istruzione non fa parte del loop --> Accettato
+                //Se l'istruzione è già stata marcata come loop-invariant --> Accettato
+                if (!loop->contains(inst->getParent()) || Invariants.count(inst)) {
                     return true;
                 }
             }
             return false;
         }
 
-        bool isInstructionLoopInvariant(Instruction *I, Loop &loop) {
+
+        //Controllo se l'istruzione è loop-invariant
+        bool isInstructionLoopInvariant(Instruction *I, Loop *loop) {
+            //Controllo che l'istruzione possa essere spostata senza conseguenze
             if (!isSafeToSpeculativelyExecute(I)) {
                 return false;
             }
+
+            //Controllo tutti gli operandi dell'istruzione
             for (auto it = I->op_begin(); it != I->op_end(); ++it) {
                 if (!isOperandInvariant(*it, loop)) 
                     return false;
             }
             return true;
         }
-        //Controlliamo che non ci sia un uso fuori dal loop
-        bool isDead(Instruction *I, Loop &loop) {
+
+
+        //Controllo che non ci sia un uso fuori dal loop
+        bool isDead(Instruction *I, Loop *loop) {
             bool isDead = true;
-            for (auto u = I->use_begin(); u != I->use_end() && isDead; ++u) {
-                Instruction *instr = dyn_cast<Instruction>(&*u);
-                if (!loop.contains(instr))
+
+            //Controllo dove viene usata l'istruzione
+            for (auto u = I->user_begin(); u != I->user_end() && isDead; ++u) {
+                Instruction *instr = dyn_cast<Instruction>(*u);
+
+                if (!loop->contains(instr))
+                    //L'istruzione si trova fuori dal loop
                     isDead = false;
             }
+            if(isDead) outs() << "Dead\n";
             return isDead;
         }
 
-        void findInstInvariants(Loop &loop, BasicBlock &block) {
-            for (auto &I : block) {
-                if (isInstructionLoopInvariant(&I, loop)) {
-                    Invariants.insert(&I);
-                    InstToMove.push_back(&I);
-                }
+
+        //Istruzioni che dominano l'uscita
+        void findInstInvariants(Loop *loop, Instruction &I) { 
+            if (isInstructionLoopInvariant(&I, loop)) {
+                Invariants.insert(&I);
+                InstToMove.push_back(&I);
             }
         }
 
-        void findInstInvariantsDead(Loop &loop, BasicBlock &block) {
-            for (auto &I : block) {
-                if (isInstructionLoopInvariant(&I, loop) && isDead(&I, loop)) {
-                    Invariants.insert(&I);
-                    InstToMove.push_back(&I);
-                }
+
+        //Istruzioni che non dominano l'uscita
+        void findInstInvariantsDead(Loop *loop, Instruction &I) { 
+            if (isInstructionLoopInvariant(&I, loop) && isDead(&I, loop)) {
+                Invariants.insert(&I);
+                InstToMove.push_back(&I);
             }
         }
 
-        bool runOnLoop(Loop &loop, LoopAnalysisManager &LAM, LoopStandardAnalysisResults &LAR, LPMUpdater &LU) {
-            BasicBlock* preheader = loop.getLoopPreheader();
+
+        bool runOnLoop(Loop *loop, DominatorTree &DT) {
+            //Controllo la presenza del preheader
+            BasicBlock* preheader = loop->getLoopPreheader();
             if (!preheader) {
                 return false;
             }
 
+            //Vettore con con gli exitBlocks
             SmallVector<BasicBlock*> vec {};
-            loop.getExitBlocks(vec);
-            llvm::DominatorTree &DT = LAR.DT;
-            auto loopBlocks = loop.getBlocks();
-            for (auto &block : loopBlocks) {
-                bool dominateExits = true;
-                for (auto it = vec.begin(); it != vec.end(); ++it) {
-                    BasicBlock *exitBlock = *it;
-                    if (!DT.dominates(block, exitBlock))
-                        dominateExits = false;
-                }
+            loop->getExitBlocks(vec);
 
-                if (dominateExits)
-                    findInstInvariants(loop, *block);
-                else
-                    findInstInvariantsDead(loop, *block);
+            auto loopBlocks = loop->getBlocks();
+
+            for (BasicBlock *block : loopBlocks) {
+
+                for (auto &I : *block) {
+
+                    //Controllo, per ogni uscita, che l'istruzione domini l'uscita
+                    bool dominateExits = true;
+                    for (auto it = vec.begin(); it != vec.end(); ++it) {
+                        BasicBlock *exitBlock = *it;                      
+
+                        if (!DT.dominates(&I, exitBlock)) {
+                            dominateExits = false;                  
+                        }
+                    }
+
+                    outs() << I << "\n";  
+
+                    if (dominateExits) {
+                        //Domina le uscite
+                        findInstInvariants(loop, I);
+                        outs() << "Domina le uscite"<< "\n\n";
+                    } else {
+                        //Non domina le uscite -> deve essere dead
+                        findInstInvariantsDead(loop, I);
+                        outs() << "Non domina le uscite" << "\n\n";
+                    }
+                }           
             }
 
+            //Sposto le istruzione nel preheader
+            outs() << "Da spostare: \n";
             for (auto &I : InstToMove) {
+                outs() << *I <<"\n";
                 I->moveBefore(preheader->getTerminator());
             }
             return true;
         }
 
-        PreservedAnalyses run(Loop &L, LoopAnalysisManager &LAM, LoopStandardAnalysisResults &LAR, LPMUpdater &LU) {
-            if (!runOnLoop(L, LAM, LAR, LU)) {
-                return PreservedAnalyses::none();
-            }
+
+        PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
+
+            LoopInfo &LI = AM.getResult<LoopAnalysis>(F);
+            DominatorTree &DT = AM.getResult<DominatorTreeAnalysis>(F);
+
+            for(auto &L : LI) {
+                if (!runOnLoop(L, DT)) {
+                    outs() << "Errore!\n";
+                    return PreservedAnalyses::all();
+                }
+            }           
+            
             return PreservedAnalyses::all();
         }
 
@@ -119,12 +162,12 @@ llvm::PassPluginLibraryInfo getLoopPassPluginInfo() {
     return {LLVM_PLUGIN_API_VERSION, "LoopPass", LLVM_VERSION_STRING,
         [](PassBuilder &PB) {
           PB.registerPipelineParsingCallback(
-            [](StringRef Name, LoopPassManager &LPM,
-               ArrayRef<PassBuilder::PipelineElement>) {
-              if (Name == "loop-pass") {
-                LPM.addPass(LoopPass());
-                return true;
-              }
+            [](StringRef Name, FunctionPassManager &FPM,
+                ArrayRef<PassBuilder::PipelineElement>) {
+                if (Name == "loop-pass") {
+                    FPM.addPass(LoopPass());
+                    return true;
+                }
               return false;
             });
         }};

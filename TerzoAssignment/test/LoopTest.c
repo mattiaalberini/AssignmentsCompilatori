@@ -2,7 +2,6 @@ int loop(int a, int b, int c, int d, int e, int N) {
     int i = 0, x, y; 
 
     do {
-
         a = d + 1;
         b = d + 2;
 

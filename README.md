@@ -1,9 +1,3 @@
-in build
-
-cmake -DLT_LLVM_INSTALL_DIR=$LLVM_DIR /Users/eliacapiluppi/Desktop/Assignment/AssignmentCompilatori/TerzoAssignment
-make
-
-in test
 ## PRIMO ASSIGNMENT
 
 **Algebraic Identity:** \
